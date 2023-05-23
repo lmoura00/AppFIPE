@@ -16,6 +16,7 @@ export function One(){
     setWaiting(true)
     const response = await api.get(params + '/marcas')
     setData(response.data);
+    console.log(response.data)
     setWaiting(false)
     //console.log(response.data)
     
