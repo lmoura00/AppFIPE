@@ -1,15 +1,31 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   View,
   Text,
   StyleSheet,
-  Image,
   TouchableOpacity,
-  FlatList,
+  SafeAreaView,
+  Dimensions,
 } from "react-native";
-import { api } from "../api";
 import { useNavigation } from "@react-navigation/native";
 import { AntDesign, FontAwesome5, Feather } from "@expo/vector-icons";
+
+// Mapa de ícones para reutilização
+const iconMap = {
+  car: <AntDesign name="car" size={45} color="#2f2f2f" />,
+  motorcycle: <FontAwesome5 name="motorcycle" size={45} color="#2f2f2f" />,
+  truck: <Feather name="truck" size={45} color="#2f2f2f" />,
+};
+
+// Componente de botão customizado para os veículos
+const VehicleButton = ({ icon, label, onPress }) => {
+  return (
+    <TouchableOpacity style={styles.button} onPress={onPress}>
+      <View style={styles.iconContainer}>{iconMap[icon]}</View>
+      <Text style={styles.buttonText}>{label}</Text>
+    </TouchableOpacity>
+  );
+};
 
 export function Home() {
   const navigation = useNavigation();
@@ -18,116 +34,88 @@ export function Home() {
   const caminhoes = String("caminhoes");
 
   return (
-    <View style={styles.container}>
-      <Text
-        style={{
-          fontSize: 45,
-          fontStyle: "italic",
-          fontWeight: "300",
-          marginBottom: 25,
-          textAlign: "center",
-          backgroundColor: "#2f2f2f",
-          color: "#ffff",
-          borderRadius: 10,
-        }}
-      >
-        APP FIPE
-      </Text>
-      <Text style={styles.title}>O QUE VOCÊ DESEJA VER?</Text>
-      <View style={{ flexDirection: "row", justifyContent: "space-evenly" }}>
-        <TouchableOpacity
-          style={styles.botao1}
-          onPress={() => navigation.navigate("One", carros)}
-        >
-          <View>
-            <AntDesign name="car" size={45} color="black" />
-            <Text style={{ textAlign: "center", fontSize: 18 }}>Carro</Text>
-          </View>
-          {/* <AntDesign name="rightcircleo" size={24} color="black" style={styles.icone} /> */}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.botao2}
-          onPress={() => navigation.navigate("One", motos)}
-        >
-          <View>
-            <FontAwesome5 name="motorcycle" size={45} color="black" />
-            <Text style={{ textAlign: "center", fontSize: 18 }}>Moto</Text>
-          </View>
-          {/* <AntDesign name="rightcircleo" size={24} color="black" style={styles.icone} /> */}
-        </TouchableOpacity>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <Text style={styles.headerTitle}>APP FIPE</Text>
+        <Text style={styles.subtitle}>O QUE VOCÊ DESEJA VER?</Text>
+        <View style={styles.buttonsContainer}>
+          <VehicleButton
+            icon="car"
+            label="Carro"
+            onPress={() => navigation.navigate("One", carros)}
+          />
+          <VehicleButton
+            icon="motorcycle"
+            label="Moto"
+            onPress={() => navigation.navigate("One", motos)}
+          />
+          <VehicleButton
+            icon="truck"
+            label="Caminhões"
+            onPress={() => navigation.navigate("One", caminhoes)}
+          />
+        </View>
       </View>
-      <View>
-        <TouchableOpacity
-          style={styles.botao}
-          onPress={() => navigation.navigate("One", caminhoes)}
-        >
-          <View>
-            <Feather
-              name="truck"
-              size={45}
-              color="black"
-              style={{ justifyContent: "center", alignSelf: "center" }}
-            />
-            <Text style={{ textAlign: "center", fontSize: 18 }}>Caminhões</Text>
-          </View>
-          {/* <AntDesign name="rightcircleo" size={24} color="black" style={styles.icone} /> */}
-        </TouchableOpacity>
-      </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#f5f5f5", // Cor de fundo suave
+  },
   container: {
     flex: 1,
-    padding: 10,
-    marginTop: 50,
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 25,
-  },
-  botao: {
-    marginTop:45,
-    flexDirection: "row",
-    width: "90%",
-    height: 85,
-    alignSelf:'center',
+    padding: 20,
     alignItems: "center",
     justifyContent: "center",
-    margin: 5,
-    backgroundColor: "#9AC1F0",
-    padding: 5,
-    elevation: 10,
-    borderRadius: 8,
   },
-  botao1: {
+  headerTitle: {
+    fontSize: 48,
+    fontFamily: "Helvetica Neue", // Fonte mais moderna
+    fontWeight: "200", // Peso da fonte mais leve
+    marginBottom: 20,
+    color: "#2f2f2f",
+    letterSpacing: 1,
+  },
+  subtitle: {
+    fontSize: 22,
+    color: "#555",
+    marginBottom: 40,
+    textAlign: "center",
+  },
+  buttonsContainer: {
     flexDirection: "row",
-    width: "40%",
-    height: 150,
+    flexWrap: "wrap", // Permite que os botões quebrem a linha em telas menores
+    justifyContent: "space-around",
+    width: "100%",
+  },
+  button: {
+    backgroundColor: "#e0e0e0", // Cor de botão mais suave
+    borderRadius: 15,
+    padding: 20,
     alignItems: "center",
     justifyContent: "center",
-    margin: 5,
-    backgroundColor: "#9AC1F0",
-    padding: 5,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.34,
+    shadowRadius: 6.27,
     elevation: 10,
-    borderRadius: 8,
+    marginBottom: 20,
+    width: "45%", // Usa porcentagem para responsividade
+    aspectRatio: 1, // Mantém o botão quadrado
   },
-  botao2: {
-    flexDirection: "row",
-    width: "40%",
-    height: 150,
-    alignItems: "center",
-    justifyContent: "center",
-    margin: 5,
-    backgroundColor: "#9AC1F0",
-    padding: 5,
-    elevation: 10,
-    borderRadius: 8,
+  iconContainer: {
+    marginBottom: 10,
   },
-  icone: {
-    position: "absolute",
-    right: 15,
+  buttonText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#2f2f2f",
+    textAlign: "center",
   },
 });

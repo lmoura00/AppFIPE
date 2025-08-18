@@ -1,82 +1,235 @@
-import React, {useEffect, useState} from "react"
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native'
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  SafeAreaView,
+  ScrollView,
+} from "react-native";
 import { api } from "../api";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, FontAwesome } from "@expo/vector-icons";
 
-export function Four(){
+const DetailRow = ({ label, value, icon }) => (
+  <View style={styles.detailRow}>
+    <FontAwesome name={icon} size={20} color="#007bff" style={styles.icon} />
+    <Text style={styles.detailLabel}>{label}:</Text>
+    <Text style={styles.detailValue}>{value}</Text>
+  </View>
+);
 
-  const [data, setData] = useState([]);
+export function Four() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const navigation = useNavigation()
-  const {params} = useRoute()
-  const [waiting, setWaiting] = useState(false)
+  const navigation = useNavigation();
+  const { params } = useRoute();
 
-  async function getData(){
-    setWaiting(true)
-    const response = await api.get(params.params.params.params+ "/marcas/"+params.params.params.item.codigo+"/modelos/"+params.params.item.codigo+"/anos/"+params.item.codigo )
-
-    setData(response.data)
-   console.log(response.data)
-   setWaiting(false)
-  }
-  //Para tirar o codigo do veiculo
-    //console.log(params.item.codigo)
-//Para saber qual o tipo
-    //console.log(params.params.params.params)
-//Para descobrir o código do modelo
-    //console.log(params.params.item.codigo)
-//Para descobrir o codigo da montadora
-    //console.log(params.params.params.item.codigo)
-
-
-
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const url = `${params.params.params.params}/marcas/${params.params.params.item.codigo}/modelos/${params.params.item.codigo}/anos/${params.item.codigo}`;
+      const response = await api.get(url);
+      setData(response.data);
+    } catch (err) {
+      setError("Não foi possível carregar os detalhes. Tente novamente.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    getData()
-  }, []);
+    fetchData();
+  }, [params]);
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#007bff" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
+  if (error) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.centerContainer}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[styles.backButton, { top: 20 }]}
+          >
+            <AntDesign name="arrowleft" size={24} color="#333" />
+          </TouchableOpacity>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchData}>
+            <Text style={styles.retryButtonText}>Tentar Novamente</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-  return(
-    <View style={styles.container}>
-    <Text style={styles.title}>{data.AnoModelo}</Text>
-    <Text style={styles.title}>{data.CodigoFipe}</Text>
-    <Text style={styles.title}>{data.Combustivel}</Text>
-    <Text style={styles.title}>{data.Marca}</Text>
-    <Text style={styles.title}>{data.MesReferencia}</Text>
-    <Text style={styles.title}>{data.Modelo}</Text>
-    <Text style={styles.title}>{data.Valor}</Text>
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <AntDesign name="arrowleft" size={24} color="#333" />
+          </TouchableOpacity>
+        </View>
+        {data && (
+          <View style={styles.content}>
+            <View style={styles.titleContainer}>
+              <Text style={styles.mainTitle}>{data.Modelo}</Text>
+              <Text style={styles.brandTitle}>{data.Marca}</Text>
+            </View>
 
-      
+            <View style={styles.priceContainer}>
+              <Text style={styles.priceValue}>{data.Valor}</Text>
+              <Text style={styles.priceLabel}>Valor (Tabela FIPE)</Text>
+            </View>
 
-      
-    </View>
-  )
+            <View style={styles.detailsCard}>
+              <DetailRow label="Ano" value={data.AnoModelo} icon="calendar" />
+              <DetailRow
+                label="Combustível"
+                value={data.Combustivel}
+                icon="tint"
+              />
+              <DetailRow
+                label="Código FIPE"
+                value={data.CodigoFipe}
+                icon="barcode"
+              />
+              <DetailRow
+                label="Referência"
+                value={data.MesReferencia}
+                icon="clock-o"
+              />
+            </View>
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
-  container:{
-    flex:1,
-    padding:10,
-    marginTop:50,
-    justifyContent:'center',
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#f0f2f5", // Tom de cinza um pouco mais azulado
   },
-  title:{
-    fontSize:25,
-    textTransform:'uppercase'
+  centerContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
-  botao:{
-    flexDirection:'row',
-    width:'95%',
-    height:55,
-    alignItems:'center',
-    justifyContent:'space-between',
-    margin:5,
-    backgroundColor:'#9AC1F0',
-    padding:5,
-    elevation:10,
-    borderRadius:8
-    
-  }
-})
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    width: "100%",
+  },
+  backButton: {
+    padding: 10,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  titleContainer: {
+    alignItems: 'center',
+    marginBottom: 30,
+    marginTop: 10,
+  },
+  mainTitle: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#1c1c1e",
+    textAlign: "center",
+  },
+  brandTitle: {
+    fontSize: 18,
+    color: "#8a8a8e",
+    textAlign: "center",
+    marginTop: 4,
+  },
+  priceContainer: {
+    marginVertical: 20,
+    alignItems: "center",
+  },
+  priceValue: {
+    fontSize: 48,
+    fontWeight: "200",
+    color: "#007bff",
+  },
+  priceLabel: {
+    fontSize: 16,
+    color: "#8a8a8e",
+    marginTop: 4,
+  },
+  detailsCard: {
+    backgroundColor: "#fff",
+    borderRadius: 15,
+    padding: 25,
+    marginTop: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  icon: {
+    marginRight: 15,
+    width: 20,
+    textAlign: "center",
+  },
+  detailLabel: {
+    fontSize: 16,
+    color: "#6c6c70",
+    fontWeight: "600",
+  },
+  detailValue: {
+    fontSize: 16,
+    color: "#1c1c1e",
+    marginLeft: 8,
+    flexShrink: 1,
+  },
+  errorText: {
+    fontSize: 18,
+    color: "#d9534f",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: "#007bff",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+  },
+  retryButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+});
