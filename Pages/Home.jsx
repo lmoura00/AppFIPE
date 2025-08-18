@@ -6,18 +6,17 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Dimensions,
+  Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { AntDesign, FontAwesome5, Feather } from "@expo/vector-icons";
 
-// Mapa de ícones para reutilização
 const iconMap = {
   car: <AntDesign name="car" size={45} color="#2f2f2f" />,
   motorcycle: <FontAwesome5 name="motorcycle" size={45} color="#2f2f2f" />,
   truck: <Feather name="truck" size={45} color="#2f2f2f" />,
 };
 
-// Componente de botão customizado para os veículos
 const VehicleButton = ({ icon, label, onPress }) => {
   return (
     <TouchableOpacity style={styles.button} onPress={onPress}>
@@ -36,7 +35,10 @@ export function Home() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <Text style={styles.headerTitle}>APP FIPE</Text>
+        <Image
+          source={require("../assets/logo.png")}
+          style={styles.logo}
+        />
         <Text style={styles.subtitle}>O QUE VOCÊ DESEJA VER?</Text>
         <View style={styles.buttonsContainer}>
           <VehicleButton
@@ -63,7 +65,7 @@ export function Home() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f5f5f5", // Cor de fundo suave
+    backgroundColor: "#f5f5f5",
   },
   container: {
     flex: 1,
@@ -71,13 +73,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  headerTitle: {
-    fontSize: 48,
-    fontFamily: "Helvetica Neue", // Fonte mais moderna
-    fontWeight: "200", // Peso da fonte mais leve
-    marginBottom: 20,
-    color: "#2f2f2f",
-    letterSpacing: 1,
+  logo: {
+    width: 350,
+    height: 200,
+    resizeMode: 'contain',
+    marginBottom: 40,
+    aspectRatio: 1,
+    borderRadius: 100,
   },
   subtitle: {
     fontSize: 22,
@@ -87,12 +89,12 @@ const styles = StyleSheet.create({
   },
   buttonsContainer: {
     flexDirection: "row",
-    flexWrap: "wrap", // Permite que os botões quebrem a linha em telas menores
+    flexWrap: "wrap",
     justifyContent: "space-around",
     width: "100%",
   },
   button: {
-    backgroundColor: "#e0e0e0", // Cor de botão mais suave
+    backgroundColor: "#e0e0e0",
     borderRadius: 15,
     padding: 20,
     alignItems: "center",
@@ -106,8 +108,8 @@ const styles = StyleSheet.create({
     shadowRadius: 6.27,
     elevation: 10,
     marginBottom: 20,
-    width: "45%", // Usa porcentagem para responsividade
-    aspectRatio: 1, // Mantém o botão quadrado
+    width: "45%",
+    aspectRatio: 1,
   },
   iconContainer: {
     marginBottom: 10,

@@ -37,8 +37,7 @@ const ListItem = React.memo(({ item, params, navigation }) => {
         <Image
           source={{ uri: logoUrl }}
           style={styles.logo}
-          // Adiciona uma imagem padrão caso o logo não seja encontrado
-          defaultSource={require('../assets/icon.png')} // Crie ou use um ícone genérico
+          defaultSource={require('../assets/icon.png')} 
         />
         <Text style={styles.itemName}>{item.nome}</Text>
       </View>
@@ -153,6 +152,7 @@ const styles = StyleSheet.create({
     color: "#333",
     textAlign: "center",
     textTransform: "uppercase",
+    marginTop: 50,
   },
   paramsText: {
     color: "#007bff",
