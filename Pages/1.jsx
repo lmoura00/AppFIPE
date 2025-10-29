@@ -14,11 +14,10 @@ import { api } from "../api";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { AntDesign } from "@expo/vector-icons";
 
-// Função para formatar o nome da marca para a URL da Clearbit
+
 const formatBrandNameForApi = (name) => {
-  // Remove espaços e converte para minúsculas
+  
   let formattedName = name.toLowerCase().replace(/\s+/g, "");
-  // Casos especiais para marcas conhecidas
   if (formattedName.includes("mercedes-benz")) return "mercedes-benz.com";
   if (formattedName.includes("astonmartin")) return "astonmartin.com";
   if (formattedName.includes("landrover")) return "landrover.com";
