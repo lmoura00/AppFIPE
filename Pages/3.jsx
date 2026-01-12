@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,20 +8,43 @@ import {
   ActivityIndicator,
   SafeAreaView,
   RefreshControl,
+  Animated,
+  Dimensions,
 } from "react-native";
 import { api } from "../api";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { AntDesign } from "@expo/vector-icons";
 
-const ListItem = React.memo(({ item, params, navigation }) => (
-  <TouchableOpacity
-    style={styles.button}
-    onPress={() => navigation.navigate("Four", { item, params })}
-  >
-    <Text style={styles.itemName}>{item.nome}</Text>
-    <AntDesign name="right" size={20} color="#555" />
-  </TouchableOpacity>
-));
+const { width } = Dimensions.get("window");
+
+const ListItem = React.memo(({ item, params, navigation }) => {
+  const scaleAnim = useMemo(() => new Animated.Value(1), []);
+
+  const handlePress = useCallback(() => {
+    navigation.navigate("Four", { item, params });
+  }, [item, params, navigation]);
+
+  return (
+    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handlePress}
+        activeOpacity={0.7}
+        accessible
+        accessibilityLabel={`Ano ${item.nome}`}
+        accessibilityRole="button"
+      >
+        <Text style={styles.itemName}>{item.nome}</Text>
+        <AntDesign
+          name="right"
+          size={20}
+          color="#007bff"
+          accessible={false}
+        />
+      </TouchableOpacity>
+    </Animated.View>
+  );
+});
 
 export function Three() {
   const [data, setData] = useState([]);
@@ -32,7 +55,7 @@ export function Three() {
   const navigation = useNavigation();
   const { params } = useRoute();
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setError(null);
       const response = await api.get(
@@ -46,34 +69,57 @@ export function Three() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [params]);
 
   useEffect(() => {
     fetchData();
-  }, [params]);
+  }, [params, fetchData]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchData();
-  }, [params]);
+  }, [fetchData]);
+
+  const renderLoading = () => (
+    <View style={styles.centerContainer}>
+      <ActivityIndicator size="large" color="#007bff" />
+      <Text style={styles.loadingText}>Carregando anos...</Text>
+    </View>
+  );
+
+  const renderError = () => (
+    <View style={styles.centerContainer}>
+      <AntDesign
+        name="warning"
+        size={50}
+        color="#d9534f"
+        style={styles.errorIcon}
+      />
+      <Text style={styles.errorText}>{error}</Text>
+      <TouchableOpacity
+        style={styles.retryButton}
+        onPress={fetchData}
+        accessible
+        accessibilityLabel="Tentar carregar anos novamente"
+        accessibilityRole="button"
+      >
+        <Text style={styles.retryButtonText}>Tentar Novamente</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderEmpty = () => (
+    <View style={styles.centerContainer}>
+      <Text style={styles.emptyText}>Nenhum ano disponível</Text>
+    </View>
+  );
 
   if (loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#007bff" />
-      </View>
-    );
+    return renderLoading();
   }
 
   if (error) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchData}>
-          <Text style={styles.retryButtonText}>Tentar Novamente</Text>
-        </TouchableOpacity>
-      </View>
-    );
+    return renderError();
   }
 
   return (
@@ -82,15 +128,18 @@ export function Three() {
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
+          accessible
+          accessibilityLabel="Voltar"
+          accessibilityRole="button"
         >
-          <AntDesign name="arrowleft" size={24} color="#333" />
+          <AntDesign name="arrowleft" size={24} color="#007bff" />
         </TouchableOpacity>
         <View style={styles.titleContainer}>
           <Text style={styles.title}>{params.item.nome}</Text>
           <Text style={styles.subtitle}>{params.params.item.nome}</Text>
         </View>
       </View>
-      <Text style={styles.listHeader}>Selecione o Ano:</Text>
+      <Text style={styles.listHeader}>Selecione o Ano</Text>
       <FlatList
         data={data}
         renderItem={({ item }) => (
@@ -101,6 +150,8 @@ export function Three() {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        ListEmptyComponent={renderEmpty}
+        showsVerticalScrollIndicator={true}
       />
     </SafeAreaView>
   );
@@ -114,12 +165,13 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 20,
     paddingHorizontal: 15,
+    paddingBottom: 10,
     marginBottom: 10,
     alignItems: "center",
     flexDirection: "row",
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    paddingBottom: 20,
+    borderBottomColor: "#e0e0e0",
   },
   backButton: {
     position: "absolute",
@@ -131,26 +183,27 @@ const styles = StyleSheet.create({
   titleContainer: {
     flex: 1,
     alignItems: "center",
+    marginTop: 10,
   },
   title: {
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 18,
+    fontWeight: "600",
     color: "#333",
     textAlign: "center",
   },
   subtitle: {
-    fontSize: 16,
-    color: "#555",
+    fontSize: 14,
+    color: "#007bff",
     textAlign: "center",
+    fontWeight: "500",
     marginTop: 4,
   },
   listHeader: {
-    fontSize: 22,
-    fontWeight: "bold",
+    fontSize: 16,
+    fontWeight: "600",
     color: "#333",
     textAlign: "center",
-    marginVertical: 20,
-    textTransform: "uppercase",
+    marginVertical: 12,
   },
   centerContainer: {
     flex: 1,
@@ -159,47 +212,73 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#f5f5f5",
   },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "#666",
+    fontWeight: "500",
+  },
   listContent: {
-    paddingHorizontal: 15,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     paddingBottom: 20,
   },
   button: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
     backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 12,
-    marginBottom: 10,
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 8,
+    marginHorizontal: 3,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 1,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
   itemName: {
-    fontSize: 18,
+    fontSize: 15,
     color: "#333",
     fontWeight: "600",
   },
+  errorIcon: {
+    marginBottom: 16,
+  },
   errorText: {
-    fontSize: 18,
+    fontSize: 16,
     color: "#d9534f",
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 24,
+    fontWeight: "500",
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#999",
+    textAlign: "center",
+    fontWeight: "500",
   },
   retryButton: {
     backgroundColor: "#007bff",
     paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 25,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+    shadowColor: "#007bff",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
   },
   retryButtonText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 15,
+    fontWeight: "600",
   },
 });
